@@ -44,6 +44,8 @@
 #include "thymio_proximity.h"
 #include "thymio_ground.h"
 #include "thymio_motors.h"
+#include "thymio_filesystem.h"
+#include "thymio_sound.h"
 
 
 STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
@@ -53,7 +55,8 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_PROXIMITY), MP_ROM_PTR(&thymio_proximity_type) },
     { MP_ROM_QSTR(MP_QSTR_GROUND), MP_ROM_PTR(&thymio_ground_type) },
     { MP_ROM_QSTR(MP_QSTR_MOTORS), MP_ROM_PTR(&thymio_motors_type) },
-
+    { MP_ROM_QSTR(MP_QSTR_FILESYSTEM), MP_ROM_PTR(&thymio_filesystem_type) },
+    { MP_ROM_QSTR(MP_QSTR_SOUND), MP_ROM_PTR(&thymio_sound_type) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(tyhmio_module_globals, thymio_module_globals_table);
