@@ -46,10 +46,38 @@
 #include "thymio_motors.h"
 #include "thymio_filesystem.h"
 #include "thymio_sound.h"
+#include "thymio_leds_lego_front.h"
+#include "thymio_leds_lego_back.h"
+#include "thymio_leds_rgb.h"
+#include "thymio_rc5.h"
+#include "thymio_imu.h"
+#include "../../../../../main/mode.h"
+#include "../../../../../main/utility.h"
 
+STATIC mp_obj_t disable_behaviors(void) {
+    enter_micropython_mode();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(disable_behaviors_obj, disable_behaviors);
+
+STATIC mp_obj_t enable_behaviors(void) {
+    exit_micropython_mode();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(enable_behaviors_obj, enable_behaviors);
+
+STATIC mp_obj_t turn_off_all(void) {
+    turnOffAllSensors();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(turn_off_all_obj, turn_off_all);
 
 STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_thymio) },
+
+    { MP_ROM_QSTR(MP_QSTR_disable_behaviors), MP_ROM_PTR(&disable_behaviors_obj) },
+    { MP_ROM_QSTR(MP_QSTR_enable_behaviors), MP_ROM_PTR(&enable_behaviors_obj) },
+    { MP_ROM_QSTR(MP_QSTR_turn_off_all), MP_ROM_PTR(&turn_off_all_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_LEDS_CIRCLE), MP_ROM_PTR(&thymio_leds_circle_type) },
     { MP_ROM_QSTR(MP_QSTR_PROXIMITY), MP_ROM_PTR(&thymio_proximity_type) },
@@ -57,6 +85,11 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_MOTORS), MP_ROM_PTR(&thymio_motors_type) },
     { MP_ROM_QSTR(MP_QSTR_FILESYSTEM), MP_ROM_PTR(&thymio_filesystem_type) },
     { MP_ROM_QSTR(MP_QSTR_SOUND), MP_ROM_PTR(&thymio_sound_type) },
+    { MP_ROM_QSTR(MP_QSTR_LEDS_LEGO_FRONT), MP_ROM_PTR(&thymio_leds_lego_front_type) },
+    { MP_ROM_QSTR(MP_QSTR_LEDS_LEGO_BACK), MP_ROM_PTR(&thymio_leds_lego_back_type) },
+    { MP_ROM_QSTR(MP_QSTR_LEDS_RGB), MP_ROM_PTR(&thymio_leds_rgb_type) },
+    { MP_ROM_QSTR(MP_QSTR_RC5), MP_ROM_PTR(&thymio_rc5_type) },
+    { MP_ROM_QSTR(MP_QSTR_IMU), MP_ROM_PTR(&thymio_imu_type) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(tyhmio_module_globals, thymio_module_globals_table);
