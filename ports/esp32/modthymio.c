@@ -51,8 +51,11 @@
 #include "thymio_leds_rgb.h"
 #include "thymio_rc5.h"
 #include "thymio_imu.h"
+#include "thymio_color_sensor.h"
+#include "thymio_buttons.h"
 #include "../../../../../main/mode.h"
 #include "../../../../../main/utility.h"
+#include "../../../../../main/stm32_spi.h"
 
 STATIC mp_obj_t disable_behaviors(void) {
     enter_micropython_mode();
@@ -72,12 +75,24 @@ STATIC mp_obj_t turn_off_all(void) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(turn_off_all_obj, turn_off_all);
 
+STATIC mp_obj_t get_battery_voltage(void) {
+    return mp_obj_new_int(STM32_GetBatteryVoltage());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_battery_voltage_obj, get_battery_voltage);
+
+STATIC mp_obj_t get_motors_voltage(void) {
+    return mp_obj_new_int(STM32_GetBatteryMotorVoltage());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_motors_voltage_obj, get_motors_voltage);
+
 STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_thymio) },
 
     { MP_ROM_QSTR(MP_QSTR_disable_behaviors), MP_ROM_PTR(&disable_behaviors_obj) },
     { MP_ROM_QSTR(MP_QSTR_enable_behaviors), MP_ROM_PTR(&enable_behaviors_obj) },
     { MP_ROM_QSTR(MP_QSTR_turn_off_all), MP_ROM_PTR(&turn_off_all_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_battery_voltage), MP_ROM_PTR(&get_battery_voltage_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_motors_voltage), MP_ROM_PTR(&get_motors_voltage_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_LEDS_CIRCLE), MP_ROM_PTR(&thymio_leds_circle_type) },
     { MP_ROM_QSTR(MP_QSTR_PROXIMITY), MP_ROM_PTR(&thymio_proximity_type) },
@@ -90,6 +105,8 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_LEDS_RGB), MP_ROM_PTR(&thymio_leds_rgb_type) },
     { MP_ROM_QSTR(MP_QSTR_RC5), MP_ROM_PTR(&thymio_rc5_type) },
     { MP_ROM_QSTR(MP_QSTR_IMU), MP_ROM_PTR(&thymio_imu_type) },
+    { MP_ROM_QSTR(MP_QSTR_COLOR_SENSOR), MP_ROM_PTR(&thymio_color_sensor_type) },
+    { MP_ROM_QSTR(MP_QSTR_BUTTONS), MP_ROM_PTR(&thymio_buttons_type) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(tyhmio_module_globals, thymio_module_globals_table);
