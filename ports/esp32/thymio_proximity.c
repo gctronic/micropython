@@ -89,7 +89,7 @@ STATIC mp_obj_t proximity_make_new(const mp_obj_type_t *type, size_t n_args, siz
 }
 
 /// \method value()
-/// Get proximity value (the higher the value, the closer the object).
+/// Get proximity sensor value (the higher the value, the closer the object).
 mp_obj_t proximity_value(mp_obj_t self_in) {
     thymio_proximity_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(proximity_get_value(self->prox_id));
@@ -97,7 +97,7 @@ mp_obj_t proximity_value(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(proximity_value_obj, proximity_value);
 
 /// \method normalized_value()
-/// Get proximity value (the higher the value, the closer the object).
+/// Get normalized (between 0 and 100) proximity sensor value (the higher the value, the closer the object).
 mp_obj_t proximity_normalized_value(mp_obj_t self_in) {
     thymio_proximity_obj_t *self = MP_OBJ_TO_PTR(self_in);
     float temp = proximity_get_value(self->prox_id);

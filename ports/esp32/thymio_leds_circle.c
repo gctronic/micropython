@@ -119,7 +119,7 @@ mp_obj_t leds_circle_obj_off(mp_obj_t self_in) {
 
 /// \method intensity([value])
 /// Get or set the LED intensity.  Intensity ranges between 0 (off) and 16 (full on).
-/// If no argument is given, return the LED intensity.
+/// If no argument is given, return the current LED intensity.
 /// If an argument is given, set the LED intensity and return `None`.
 mp_obj_t leds_circle_obj_intensity(size_t n_args, const mp_obj_t *args) {
     thymio_leds_circle_obj_t *self = MP_OBJ_TO_PTR(args[0]);

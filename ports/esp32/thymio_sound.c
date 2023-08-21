@@ -74,7 +74,7 @@ STATIC mp_obj_t sound_make_new(const mp_obj_type_t *type, size_t n_args, size_t 
 }
 
 /// \method play_mp3
-/// Play mp3 sound file saved in internal robot storage.
+/// Play mp3 sound file from internal robot storage. The mp3 name must be saved in the format "number.mp3" (e.g. 0.mp3, 1.mp3, ...). The id parameter identifies the correct mp3 to play => id.mp3.
 mp_obj_t sound_play_mp3_(mp_obj_t self_in, mp_obj_t ind) {
     int index = mp_obj_get_int(ind);
     sound_play_mp3(index);
@@ -83,7 +83,7 @@ mp_obj_t sound_play_mp3_(mp_obj_t self_in, mp_obj_t ind) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_mp3_obj, sound_play_mp3_);
 
 /// \method play_wav
-/// Play wav sound file saved in internal robot storage.
+/// Play wav sound file from internal robot storage. The wav name must be saved in the format "number.wav" (e.g. 0.wav, 1.wav, ...). The id parameter identifies the correct wav to play => id.wav.
 mp_obj_t sound_play_wav_(mp_obj_t self_in, mp_obj_t ind) {
     int index = mp_obj_get_int(ind);
     sound_play_wav(index);
@@ -92,7 +92,7 @@ mp_obj_t sound_play_wav_(mp_obj_t self_in, mp_obj_t ind) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_wav_obj, sound_play_wav_);
 
 /// \method record_wav
-/// Record sound to internal robot storage in wav format.
+/// Record sound to internal robot storage in wav format with name id.wav.
 mp_obj_t sound_record_wav_(mp_obj_t self_in, mp_obj_t ind, mp_obj_t sec) {
     int index = mp_obj_get_int(ind);
     int duration = mp_obj_get_int(sec);

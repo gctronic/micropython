@@ -70,7 +70,7 @@ STATIC mp_obj_t imu_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_
 }
 
 /// \method imu_get_acc()
-/// Get accelerometer values.
+/// Get raw accelerometer values. Values between -32768 and 32767 (scale = +- 2g).
 mp_obj_t imu_get_acceleration(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
     acc_temp = imu_get_acc();
@@ -82,7 +82,7 @@ mp_obj_t imu_get_acceleration(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_acceleration_obj, imu_get_acceleration);
 
 /// \method imu_get_gyro()
-/// Get gyroscope values.
+/// Get raw gyroscope values. Values between -32768 and 32767 (scale = +- 500 dps).
 mp_obj_t imu_get_gyroscope(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
     gyro_temp = imu_get_gyro();

@@ -40,6 +40,7 @@
 #include "py/mphal.h"
 #include "shared/timeutils/timeutils.h"
 #include "modmachine.h"
+#include "modthymio.h"
 #include "thymio_leds_circle.h"
 #include "thymio_proximity.h"
 #include "thymio_ground.h"
@@ -57,33 +58,47 @@
 #include "../../../../../main/utility.h"
 #include "../../../../../main/stm32_spi.h"
 
+char api_version[6] = "XX.XX\0";
+
+// Disable onboard behaviors. All sensors and actuators are released for user scripts.
 STATIC mp_obj_t disable_behaviors(void) {
     enter_micropython_mode();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(disable_behaviors_obj, disable_behaviors);
 
+// Enable onboard behaviors. Some sensors and actuators are locked depending on the current behavior.
 STATIC mp_obj_t enable_behaviors(void) {
     exit_micropython_mode();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(enable_behaviors_obj, enable_behaviors);
 
+// Turn off all LEDs and stop the motors.
 STATIC mp_obj_t turn_off_all(void) {
     turnOffAllSensors();
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(turn_off_all_obj, turn_off_all);
 
+// Get current battery voltage in millivolts.
 STATIC mp_obj_t get_battery_voltage(void) {
     return mp_obj_new_int(STM32_GetBatteryVoltage());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_battery_voltage_obj, get_battery_voltage);
 
+// Get the sum of left and right motors measured voltage (adc value).
 STATIC mp_obj_t get_motors_voltage(void) {
     return mp_obj_new_int(STM32_GetBatteryMotorVoltage());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_motors_voltage_obj, get_motors_voltage);
+
+// Get current Thymio API version.
+STATIC mp_obj_t get_api_version(void) {
+    snprintf(api_version, 6, "%2d.%-2d", THYMIO_API_MAJOR_VERSION, THYMIO_API_MINOR_VERSION);
+    return mp_obj_new_str(api_version, strlen(api_version));
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_api_version_obj, get_api_version);
 
 STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_thymio) },
@@ -93,6 +108,7 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_turn_off_all), MP_ROM_PTR(&turn_off_all_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_battery_voltage), MP_ROM_PTR(&get_battery_voltage_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_motors_voltage), MP_ROM_PTR(&get_motors_voltage_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_api_version), MP_ROM_PTR(&get_api_version_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_LEDS_CIRCLE), MP_ROM_PTR(&thymio_leds_circle_type) },
     { MP_ROM_QSTR(MP_QSTR_PROXIMITY), MP_ROM_PTR(&thymio_proximity_type) },

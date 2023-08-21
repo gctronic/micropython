@@ -74,21 +74,21 @@ STATIC mp_obj_t motors_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 }
 
 /// \method get_left_speed()
-/// Get left motor speed.
+/// Get measured left motor speed.
 mp_obj_t motors_left_speed(mp_obj_t self_in) {
     return mp_obj_new_int(motors_get_left_speed());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_left_speed_obj, motors_left_speed);
 
 /// \method get_right_speed()
-/// Get right motor speed.
+/// Get measured right motor speed.
 mp_obj_t motors_right_speed(mp_obj_t self_in) {
     return mp_obj_new_int(motors_get_right_speed());
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_right_speed_obj, motors_right_speed);
 
 /// \method set_speed()
-/// Set motors speed.
+/// Set motors speed. Range is between -1000 and 1000.
 mp_obj_t motors_set_speed(mp_obj_t self_in, mp_obj_t left, mp_obj_t right) {
     int l = mp_obj_get_int(left);
     int r = mp_obj_get_int(right);

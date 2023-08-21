@@ -84,7 +84,7 @@ STATIC mp_obj_t ground_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 }
 
 /// \method value()
-/// Get ground value (the lower the value, the darker the object).
+/// Get ground sensor value (the lower the value, the darker the object).
 mp_obj_t ground_value(mp_obj_t self_in) {
     thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(ground_get_value(self->ground_id));
@@ -92,7 +92,7 @@ mp_obj_t ground_value(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_value_obj, ground_value);
 
 /// \method normalized_value()
-/// Get ground value (the lower the value, the darker the object).
+/// Get normalized (between 0 and 100) ground sensor value (the lower the value, the darker the object).
 mp_obj_t ground_normalized_value(mp_obj_t self_in) {
     thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
     float temp = ground_get_value(self->ground_id);

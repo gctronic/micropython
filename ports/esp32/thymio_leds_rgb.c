@@ -201,7 +201,7 @@ mp_obj_t leds_rgb_obj_set_intensity(size_t n_args, const mp_obj_t *args) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(leds_rgb_obj_set_intensity_obj, 4, 4, leds_rgb_obj_set_intensity);
 
 /// \method get_intensity_red()
-/// Return red intensity [0..16].
+/// Return current red intensity [0..16].
 mp_obj_t leds_rgb_obj_get_intensity_red(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(leds_rgb_get_intensity_red(self->led_id));
@@ -209,7 +209,7 @@ mp_obj_t leds_rgb_obj_get_intensity_red(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_get_intensity_red_obj, leds_rgb_obj_get_intensity_red);
 
 /// \method get_intensity_green()
-/// Return green intensity [0..16].
+/// Return current green intensity [0..16].
 mp_obj_t leds_rgb_obj_get_intensity_green(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(leds_rgb_get_intensity_green(self->led_id));
@@ -217,7 +217,7 @@ mp_obj_t leds_rgb_obj_get_intensity_green(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_get_intensity_green_obj, leds_rgb_obj_get_intensity_green);
 
 /// \method get_intensity_blue()
-/// Return blue intensity [0..16].
+/// Return current blue intensity [0..16].
 mp_obj_t leds_rgb_obj_get_intensity_blue(mp_obj_t self_in) {
     thymio_leds_rgb_obj_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_int(leds_rgb_get_intensity_blue(self->led_id));
