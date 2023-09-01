@@ -30,6 +30,9 @@
 
 void color_sensor_init(void);
 T_HSV color_sensor_get_hsv(void);
+T_RawColor color_sensor_get_raw(void);
+T_RawColor color_sensor_get_calib_white(void);
+T_RawColor color_sensor_get_calib_black(void);
 
 extern const mp_obj_type_t thymio_color_sensor_type;
 

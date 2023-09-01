@@ -65,7 +65,7 @@ STATIC mp_obj_t buttons_make_new(const mp_obj_type_t *type, size_t n_args, size_
 }
 
 /// \method buttons_get_status()
-/// Get buttons status (1 = pressed, 0 = not pressed).
+/// Get buttons status (1 = pressed, 0 = not pressed). The returned list correspond to [BACKWARD, LEFT, CENTER, FORWARD, RIGHT].
 mp_obj_t buttons_get_status_values(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(5, NULL));
     status_temp = buttons_get_status();
