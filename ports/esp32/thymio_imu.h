@@ -31,6 +31,15 @@
 void imu_init(void);
 T_Axis imu_get_acc(void);
 T_Axis imu_get_gyro(void);
+int16_t imu_get_angle_deg(void);
+void imu_reset_angle(void);
+void imu_get_gyro_calibration(int16_t *values);
+void imu_reset_gyro_calibration(void);
+void imu_calibrate_gyro(void);
+void imu_rotate_deg(int16_t angle, int16_t speed);
+bool imu_rotation_is_complete(void);
+void imu_enable_gyro_continuous_calibration(void);
+void imu_disable_gyro_continuous_calibration(void);
 
 extern const mp_obj_type_t thymio_imu_type;
 
