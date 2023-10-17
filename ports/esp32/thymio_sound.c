@@ -30,6 +30,8 @@
 #include "py/mphal.h"
 #include "thymio_sound.h"
 #include "../../../../../main/codec.h"
+#include "../../../../../main/aseba_esp32.h"
+#include "../../../../../main/stm32_spi.h"
 
 
 /// \moduleref thymio
@@ -56,6 +58,18 @@ void sound_play_wav(int index) {
 
 void sound_record_wav(int index, int duration) {
     Codec_RecordWAVFile(index, duration);
+}
+
+int sound_get_mic_volume(void) {
+    return STM32_GetMicrophoneIntensity();
+}
+
+bool sound_clap_detected(void) {
+    return IS_EVENT(EVENT_MIC);
+}
+
+void sound_clear_clap_event(void) {
+    CLEAR_EVENT(EVENT_MIC);
 }
 
 /******************************************************************************/
@@ -102,10 +116,35 @@ mp_obj_t sound_record_wav_(mp_obj_t self_in, mp_obj_t ind, mp_obj_t sec) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(sound_record_wav_obj, sound_record_wav_);
 
+/// \method get_mic_volume
+/// Return the volume computed from the microphone.
+mp_obj_t sound_get_mic_volume_(mp_obj_t self_in) {
+    return mp_obj_new_int(sound_get_mic_volume());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_get_mic_volume_obj, sound_get_mic_volume_);
+
+/// \method clap_detected
+/// Return true if a clap is detected, false otherwise. This flag must be cleared using "clear_clap_event".
+mp_obj_t sound_clap_detected_(mp_obj_t self_in) {
+    return mp_obj_new_bool(sound_clap_detected());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_clap_detected_obj, sound_clap_detected_);
+
+/// \method clear_clap_event
+/// Clear the clap event flag. This must be used after a clap detection event in order to detect following claps.
+mp_obj_t sound_clear_clap_event_(mp_obj_t self_in) {
+    sound_clear_clap_event();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_clear_clap_event_obj, sound_clear_clap_event_);
+
 STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_play_mp3), MP_ROM_PTR(&sound_play_mp3_obj) },
     { MP_ROM_QSTR(MP_QSTR_play_wav), MP_ROM_PTR(&sound_play_wav_obj) },
     { MP_ROM_QSTR(MP_QSTR_record_wav), MP_ROM_PTR(&sound_record_wav_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_mic_volume), MP_ROM_PTR(&sound_get_mic_volume_obj) },
+    { MP_ROM_QSTR(MP_QSTR_clap_detected), MP_ROM_PTR(&sound_clap_detected_obj) },
+    { MP_ROM_QSTR(MP_QSTR_clear_clap_event), MP_ROM_PTR(&sound_clear_clap_event_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(sound_locals_dict, sound_locals_dict_table);

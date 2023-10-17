@@ -32,6 +32,7 @@
 #include "../../../../../main/accelerometer.h"
 #include "../../../../../main/gyroscope.h"
 #include "../../../../../main/angle_controller.h"
+#include "../../../../../main/aseba_esp32.h"
 
 T_Axis acc_temp, gyro_temp;
 int16_t calib_temp[3];
@@ -90,6 +91,24 @@ void imu_enable_gyro_continuous_calibration(void) {
 
 void imu_disable_gyro_continuous_calibration(void) {
     Gyroscope_DisableContinuousCalib();
+}
+
+bool imu_tap_detected(void) {
+    //return Accelerometer_IsTapDetected(); // This call will clear also the flag
+    return IS_EVENT(EVENT_TAP);
+}
+
+void imu_clear_tap_event(void) {
+    CLEAR_EVENT(EVENT_TAP);
+}
+
+bool imu_freefall_detected(void) {    
+    //return Accelerometer_IsFreeFallDetected(); // This call will clear also the flag
+    return IS_EVENT(EVENT_FREEFALL);
+}
+
+void imu_clear_freefall_event(void) {
+    CLEAR_EVENT(EVENT_FREEFALL);
 }
 
 /******************************************************************************/
@@ -215,6 +234,36 @@ mp_obj_t imu_disable_gyro_continuous_calibration_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_disable_gyro_continuous_calibration_obj, imu_disable_gyro_continuous_calibration_);
 
+/// \method imu_tap_detected()
+/// Return true if a tap is detected, false otherwise. This flag must be cleared using "clear_tap_event".
+mp_obj_t imu_tap_detected_(mp_obj_t self_in) {
+    return mp_obj_new_bool(imu_tap_detected());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_tap_detected_obj, imu_tap_detected_);
+
+/// \method clear_tap_event
+/// Clear the tap event flag. This must be used after a tap detection event in order to detect following taps.
+mp_obj_t imu_clear_tap_event_(mp_obj_t self_in) {
+    imu_clear_tap_event();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_clear_tap_event_obj, imu_clear_tap_event_);
+
+/// \method imu_freefall_detected()
+/// Return true if a free fall is detected, false otherwise. This flag must be cleared using "clear_freefall_event".
+mp_obj_t imu_freefall_detected_(mp_obj_t self_in) {
+    return mp_obj_new_bool(imu_freefall_detected());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_freefall_detected_obj, imu_freefall_detected_);
+
+/// \method clear_freefall_event
+/// Clear the free fall event flag. This must be used after a free fall detection event in order to detect following free falls.
+mp_obj_t imu_clear_freefall_event_(mp_obj_t self_in) {
+    imu_clear_freefall_event();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_clear_freefall_event_obj, imu_clear_freefall_event_);
+
 STATIC const mp_rom_map_elem_t imu_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_acc), MP_ROM_PTR(&imu_get_acceleration_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_gyro), MP_ROM_PTR(&imu_get_gyroscope_obj) },
@@ -227,6 +276,10 @@ STATIC const mp_rom_map_elem_t imu_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_enable_gyro_auto_calib), MP_ROM_PTR(&imu_enable_gyro_continuous_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_disable_gyro_auto_calib), MP_ROM_PTR(&imu_disable_gyro_continuous_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_gyro_calib), MP_ROM_PTR(&imu_get_gyro_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_tap_detected), MP_ROM_PTR(&imu_tap_detected_obj) },
+    { MP_ROM_QSTR(MP_QSTR_clear_tap_event), MP_ROM_PTR(&imu_clear_tap_event_obj) },
+    { MP_ROM_QSTR(MP_QSTR_freefall_detected), MP_ROM_PTR(&imu_freefall_detected_obj) },
+    { MP_ROM_QSTR(MP_QSTR_clear_freefall_event), MP_ROM_PTR(&imu_clear_freefall_event_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(imu_locals_dict, imu_locals_dict_table);

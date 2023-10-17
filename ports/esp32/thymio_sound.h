@@ -30,6 +30,9 @@ void sound_init(void);
 void sound_play_mp3(int index);
 void sound_play_wav(int index);
 void sound_record_wav(int index, int duration);
+int sound_get_mic_volume(void);
+bool sound_clap_detected(void);
+void sound_clear_clap_event(void);
 
 extern const mp_obj_type_t thymio_sound_type;
 

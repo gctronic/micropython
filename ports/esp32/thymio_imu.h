@@ -40,6 +40,10 @@ void imu_rotate_deg(int16_t angle, int16_t speed);
 bool imu_rotation_is_complete(void);
 void imu_enable_gyro_continuous_calibration(void);
 void imu_disable_gyro_continuous_calibration(void);
+bool imu_freefall_detected(void);
+void imu_clear_freefall_event(void);
+bool imu_tap_detected(void);
+void imu_clear_tap_event(void);
 
 extern const mp_obj_type_t thymio_imu_type;
 
