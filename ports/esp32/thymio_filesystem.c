@@ -29,6 +29,8 @@
 
 #include "py/runtime.h"
 #include "py/mphal.h"
+#include "py/obj.h"
+#include "py/objstr.h"
 #include "thymio_filesystem.h"
 #include "../../../../../main/file_system.h"
 
@@ -119,7 +121,18 @@ STATIC mp_obj_t filesystem_read(mp_obj_t self_in, mp_obj_t filename) {
     //printf("read fsize = %ld\n", fsize);
 
     buf = m_new(byte, fsize);
+    //printf("buffer allocated\n");
     err = filesystem_read_file(fname, buf);
+
+    /*
+    // Second version usable that do not allocate the buffer twice
+    mp_obj_str_t *o = mp_obj_malloc(mp_obj_str_t, &mp_type_bytes);
+    o->len = fsize;
+    buf = m_new(byte, fsize + 1);
+    o->data = buf;
+    err = filesystem_read_file(fname, buf);
+    buf[fsize] = '\0'; // for now we add null for compatibility with C ASCIIZ strings
+    */
 
     if(err == -1) {
         mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Cannot open file"));
@@ -132,7 +145,11 @@ STATIC mp_obj_t filesystem_read(mp_obj_t self_in, mp_obj_t filename) {
         return mp_const_none;
     }
 
-    return mp_obj_new_bytes(buf, fsize);
+    //return mp_obj_new_bytes(buf, fsize);  // Using this function a new buffer is allocated with same size as "buf", with large files
+                                            // it leads to memory exhaustion.
+    return mp_obj_new_bytearray_by_ref(fsize, buf); // This function could be used instead...  
+
+    //return MP_OBJ_FROM_PTR(o);   // Second version... 
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(filesystem_read_obj, filesystem_read);
 

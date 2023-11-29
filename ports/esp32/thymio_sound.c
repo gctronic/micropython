@@ -25,13 +25,17 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
+#include "extmod/vfs.h"
+#include "py/stream.h"
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "thymio_sound.h"
 #include "../../../../../main/codec.h"
 #include "../../../../../main/aseba_esp32.h"
 #include "../../../../../main/stm32_spi.h"
+#include "../../../../../main/settings.h"
 
 
 /// \moduleref thymio
@@ -46,18 +50,6 @@ typedef struct _thymio_sound_obj_t {
 //STATIC const thymio_sound_obj_t thymio_sound_obj;
 
 void sound_init(void) {
-}
-
-void sound_play_mp3(int index) {
-    Codec_PlayMP3File(index);
-}
-
-void sound_play_wav(int index) {
-    Codec_PlayWAVFile(index);
-}
-
-void sound_record_wav(int index, int duration) {
-    Codec_RecordWAVFile(index, duration);
 }
 
 int sound_get_mic_volume(void) {
@@ -87,34 +79,18 @@ STATIC mp_obj_t sound_make_new(const mp_obj_type_t *type, size_t n_args, size_t 
     return MP_OBJ_FROM_PTR(sound);
 }
 
-/// \method play_mp3
-/// Play mp3 sound file from internal robot storage. The mp3 name must be saved in the format "number.mp3" (e.g. 0.mp3, 1.mp3, ...). The id parameter identifies the correct mp3 to play => id.mp3.
-mp_obj_t sound_play_mp3_(mp_obj_t self_in, mp_obj_t ind) {
-    int index = mp_obj_get_int(ind);
-    sound_play_mp3(index);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_mp3_obj, sound_play_mp3_);
-
-/// \method play_wav
-/// Play wav sound file from internal robot storage. The wav name must be saved in the format "number.wav" (e.g. 0.wav, 1.wav, ...). The id parameter identifies the correct wav to play => id.wav.
-mp_obj_t sound_play_wav_(mp_obj_t self_in, mp_obj_t ind) {
-    int index = mp_obj_get_int(ind);
-    sound_play_wav(index);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_wav_obj, sound_play_wav_);
-
 /// \method record_wav
-/// Record sound to internal robot storage in wav format with name id.wav.
-mp_obj_t sound_record_wav_(mp_obj_t self_in, mp_obj_t ind, mp_obj_t sec) {
-    int index = mp_obj_get_int(ind);
+/// Record sound for "sec" seconds in wav format. The data are saved in RAM memory.
+mp_obj_t sound_record_wav_(mp_obj_t self_in, mp_obj_t sec) {
     int duration = mp_obj_get_int(sec);
-    // check max duration
-    sound_record_wav(index, duration);
+    if(duration > 10) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Max recording is 10 seconds"));
+        return mp_const_none;
+    }
+    Codec_RecordWAVFile(duration);
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(sound_record_wav_obj, sound_record_wav_);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_record_wav_obj, sound_record_wav_);
 
 /// \method get_mic_volume
 /// Return the volume computed from the microphone.
@@ -138,13 +114,228 @@ mp_obj_t sound_clear_clap_event_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_clear_clap_event_obj, sound_clear_clap_event_);
 
+/// \method sound_record_is_complete()
+/// Tell if the recording is completed.
+/// Return true if the recording is completed.
+mp_obj_t sound_record_is_complete(mp_obj_t self_in) {
+    return mp_obj_new_bool(Codec_IsRecordFinished());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_record_is_complete_obj, sound_record_is_complete);
+
+/// \method sound_play_is_complete()
+/// Tell if the last sound is complete.
+/// Return true if the sound is completed.
+mp_obj_t sound_play_is_complete(mp_obj_t self_in) {
+    return mp_obj_new_bool(Codec_IsSoundFinished());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_play_is_complete_obj, sound_play_is_complete);
+
+/// \method record_get()
+/// Get the recording data.
+STATIC mp_obj_t sound_record_get(mp_obj_t self_in) {
+    byte *buf;
+    uint32_t recSize = Codec_GetRecordSize();
+    buf = m_new(byte, recSize);
+    memcpy(buf, Codec_GetRecordPtr(), recSize);
+    return mp_obj_new_bytearray_by_ref(recSize, buf);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_record_get_obj, sound_record_get);
+
+//! \brief  Play sound file (wav or mp3) from internal robot storage. The sound file must have either ".wav" or ".mp3" extension and in the format: 12KHz sample rate, 16 bits per sample, mono.
+//! \param  name of the file
+//! \return None if ok, RuntimeError exception if another sound or recording is already running, ValueError if file not supported.
+mp_obj_t sound_play_from_file(mp_obj_t self_in, mp_obj_t name) {
+    mp_obj_t file;
+    mp_obj_t args[2] = {
+        name,
+        MP_OBJ_NEW_QSTR(MP_QSTR_rb),
+    };
+    uint32_t sampleRate = 0;
+    uint16_t numChannels = 0;
+    uint16_t bitsPerChannel = 0;
+    uint16_t mp3Ver = 0;
+    uint32_t id3Size = 0;
+    uint32_t len;
+    int errcode;
+    uint32_t fileSize = 0;
+    byte *buf;
+    uint8_t fileType = 0;
+    char* fileName = mp_obj_str_get_str(args[0]);
+    int fileNameLen = strlen(fileName);
+    //printf("last char filename = %c\n", fileName[fileNameLen-1]);
+    if(fileName[fileNameLen-1] == 'v') { // Wav
+        fileType = 1;
+    } else if(fileName[fileNameLen-1] == '3') { // Mp3
+        fileType = 2;
+    } else {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("File format not supported"));
+        return mp_const_none;
+    }
+
+    mp_obj_t stat = mp_vfs_stat(name);
+    mp_obj_tuple_t *t = MP_OBJ_TO_PTR(stat);
+    // print tuple
+    fileSize = mp_obj_get_int(t->items[6]);
+    //for (int i = 1; i <= 9; ++i) {
+    //    printf("tuple[%d]=%d\n", i, mp_obj_get_int(t->items[i]));  // dev, nlink, uid, gid, size, atime, mtime, ctime
+    //}
+    //printf("filesize=%d\n", fileSize);
+    buf = m_new(byte, fileSize);
+    file = mp_vfs_open(MP_ARRAY_SIZE(args), &args[0], (mp_map_t *)&mp_const_empty_map);
+    len = mp_stream_rw(file, buf, fileSize, &errcode, MP_STREAM_RW_READ | MP_STREAM_RW_ONCE);
+    mp_stream_close(file);   
+
+    // Check sound format by interpreting the header.
+    if(fileType == 1) { // Wav
+        numChannels = buf[22]+(buf[23]<<8);
+        sampleRate = buf[24]+(buf[25]<<8)+(buf[26]<<16)+(buf[27]<<24);        
+        bitsPerChannel = buf[34]+(buf[35]<<8);
+        //printf("wav ch=%d, rate=%d, bits=%d\n", numChannels, sampleRate, bitsPerChannel);
+        if((numChannels==1) && (sampleRate==12000) && (bitsPerChannel==16)) {
+            if(Codec_PlayWAVFile(buf, fileSize) != ESP_OK) {
+                mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
+                return mp_const_none;    
+            }
+        } else {
+            mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("File format not supported"));
+            return mp_const_none;
+        }
+    } else if(fileType == 2) { // Mp3         
+        if(buf[0] == 0x49) { // ID3 header detected
+            id3Size = buf[9] + (buf[8]<<8) + (buf[7]<<16) + (buf[6]<<24);
+            //printf("%x %x %x %x\n", buf[10+id3Size], buf[11+id3Size], buf[12+id3Size], buf[13+id3Size]);
+            mp3Ver = (buf[11+id3Size]&0x18)>>3;
+            numChannels = (buf[13+id3Size]&0xC0)>>6;
+            sampleRate = (buf[12+id3Size]&0x0C)>>2;            
+        } else if(buf[0] == 0xFF) { // Mp3 header (no ID3 included)
+            //printf("%x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+            mp3Ver = (buf[1]&0x18)>>3;
+            numChannels = (buf[3]&0xC0)>>6;
+            sampleRate = (buf[2]&0x0C)>>2;
+        } else {
+            mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("File format not supported"));
+            return mp_const_none;
+        }
+        //printf("mp3 ver=%d, rate=%d, ch=%d\n", mp3Ver, sampleRate, numChannels);
+        if((mp3Ver==0) && (numChannels==3) && (sampleRate==1)) {
+            if(Codec_PlayMP3File(buf, fileSize) != ESP_OK) {
+                mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
+                return mp_const_none;                
+            }
+        } else {
+            mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("File format not supported"));
+            return mp_const_none;            
+        }
+    }
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_from_file_obj, sound_play_from_file);
+
+//! \brief     Play the last recorded sound directly from memory.
+//! \param     None
+//! \return    None if ok, RuntimeError exception if another sound or recording is already running.
+mp_obj_t sound_play_recorded(mp_obj_t self_in) {
+    if(Codec_PlayRecorded() != ESP_OK) {
+        mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
+        return mp_const_none;
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_play_recorded_obj, sound_play_recorded);
+
+//! \brief  Play onboard sound (the ones pre-built in the robot firmware).
+//! \param  The ind parameter identifies the correct sound to play:
+//!         0 = magic,
+//!         1 = Tick,
+//!         2 = Blop,
+//!         3 = Fall,
+//!         4 = Detection,
+//!         5 = Bye,
+//!         6 = C3,
+//!         7 = D3,
+//!         8 = E3,
+//!         9 = F3,
+//!         10 = G3,
+//!         11 = A3,
+//!         12 = B3,
+//!         13 = Alarm,
+//!         14 = Good,
+//!         15 = Bad
+//! \return None if ok, RuntimeError exception if another sound or recording is already running.
+mp_obj_t sound_play_onboard(mp_obj_t self_in, mp_obj_t ind) {
+    int index = mp_obj_get_int(ind);
+    if(Codec_PlayOnboardSound(index) != ESP_OK) {
+        mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
+        return mp_const_none;
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_onboard_obj, sound_play_onboard);
+
+//! \brief     Pause any running play or recording (can be resumed with "resume").
+//! \param     None
+//! \return    None if ok, RuntimeError exception if no sound or recording is running.
+mp_obj_t sound_pause(mp_obj_t self_in) {
+    if(Codec_Pause() != ESP_OK) {
+        mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot pause"));
+        return mp_const_none;
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_pause_obj, sound_pause);
+
+//! \brief     Resume a previously paused (with "pause") play or recording.
+//! \param     None
+//! \return    None if ok, RuntimeError exception if no sound or recording was paused.
+mp_obj_t sound_resume(mp_obj_t self_in) {
+    if(Codec_Resume() != ESP_OK) {
+        mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot resume"));
+        return mp_const_none;
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_resume_obj, sound_resume);
+
+//! \brief     Set the play volume.
+//! \param     Volume Between 0 and 10.
+//! \return    None
+mp_obj_t sound_set_volume(mp_obj_t self_in, mp_obj_t vol) {
+    int volume = mp_obj_get_int(vol);
+    if((volume > 10) || (volume < 0)) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Volume must be between 0 and 10"));
+        return mp_const_none;
+    }
+
+    Codec_SetVolume(volume*10);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_set_volume_obj, sound_set_volume);
+
+//! \brief     Store the current volume value in the permanent settings. The volume setting will be used when the robot is turned on next times.
+//! \param     None
+//! \return    None
+mp_obj_t sound_save_volume(mp_obj_t self_in) {
+    Settings_WriteVolume(Settings_GetVolumeSettings());
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_save_volume_obj, sound_save_volume);
+
 STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_play_mp3), MP_ROM_PTR(&sound_play_mp3_obj) },
-    { MP_ROM_QSTR(MP_QSTR_play_wav), MP_ROM_PTR(&sound_play_wav_obj) },
-    { MP_ROM_QSTR(MP_QSTR_record_wav), MP_ROM_PTR(&sound_record_wav_obj) },
+    { MP_ROM_QSTR(MP_QSTR_record), MP_ROM_PTR(&sound_record_wav_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_mic_volume), MP_ROM_PTR(&sound_get_mic_volume_obj) },
     { MP_ROM_QSTR(MP_QSTR_clap_detected), MP_ROM_PTR(&sound_clap_detected_obj) },
     { MP_ROM_QSTR(MP_QSTR_clear_clap_event), MP_ROM_PTR(&sound_clear_clap_event_obj) },
+    { MP_ROM_QSTR(MP_QSTR_record_completed), MP_ROM_PTR(&sound_record_is_complete_obj) },
+    { MP_ROM_QSTR(MP_QSTR_record_get), MP_ROM_PTR(&sound_record_get_obj) },
+    { MP_ROM_QSTR(MP_QSTR_play_from_file), MP_ROM_PTR(&sound_play_from_file_obj) },
+    { MP_ROM_QSTR(MP_QSTR_play_recorded), MP_ROM_PTR(&sound_play_recorded_obj) },
+    { MP_ROM_QSTR(MP_QSTR_play_onboard), MP_ROM_PTR(&sound_play_onboard_obj) },
+    { MP_ROM_QSTR(MP_QSTR_play_completed), MP_ROM_PTR(&sound_play_is_complete_obj) },
+    { MP_ROM_QSTR(MP_QSTR_pause), MP_ROM_PTR(&sound_pause_obj) },    
+    { MP_ROM_QSTR(MP_QSTR_resume), MP_ROM_PTR(&sound_resume_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_volume), MP_ROM_PTR(&sound_set_volume_obj) },
+    { MP_ROM_QSTR(MP_QSTR_save_volume), MP_ROM_PTR(&sound_save_volume_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(sound_locals_dict, sound_locals_dict_table);

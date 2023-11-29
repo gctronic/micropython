@@ -112,10 +112,10 @@ STATIC const machine_pin_obj_t machine_pin_obj[GPIO_NUM_MAX] = {
     {{&machine_pin_type}, GPIO_NUM_33},
     {{&machine_pin_type}, GPIO_NUM_34},
     {{&machine_pin_type}, GPIO_NUM_35},
-    {{&machine_pin_type}, GPIO_NUM_36},
+    {{NULL}, GPIO_NUM_36},  // Used by ACC_INT1 (freefall)
     {{&machine_pin_type}, GPIO_NUM_37},
     {{&machine_pin_type}, GPIO_NUM_38},
-    {{&machine_pin_type}, GPIO_NUM_39},
+    {{NULL}, GPIO_NUM_39},  // Used by ACC_INT2 (tap)
 
     #elif CONFIG_IDF_TARGET_ESP32C3
 
