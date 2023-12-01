@@ -190,7 +190,7 @@ mp_obj_t sound_play_from_file(mp_obj_t self_in, mp_obj_t name) {
         numChannels = buf[22]+(buf[23]<<8);
         sampleRate = buf[24]+(buf[25]<<8)+(buf[26]<<16)+(buf[27]<<24);        
         bitsPerChannel = buf[34]+(buf[35]<<8);
-        //printf("wav ch=%d, rate=%d, bits=%d\n", numChannels, sampleRate, bitsPerChannel);
+        printf("wav ch=%d, rate=%d, bits=%d\n", numChannels, sampleRate, bitsPerChannel);
         if((numChannels==1) && (sampleRate==12000) && (bitsPerChannel==16)) {
             if(Codec_PlayWAVFile(buf, fileSize) != ESP_OK) {
                 mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
@@ -202,13 +202,14 @@ mp_obj_t sound_play_from_file(mp_obj_t self_in, mp_obj_t name) {
         }
     } else if(fileType == 2) { // Mp3         
         if(buf[0] == 0x49) { // ID3 header detected
-            id3Size = buf[9] + (buf[8]<<8) + (buf[7]<<16) + (buf[6]<<24);
+            id3Size = buf[9] + (buf[8]<<7) + (buf[7]<<14) + (buf[6]<<21);
+            //printf("id3size = %d\n", id3Size);
             //printf("%x %x %x %x\n", buf[10+id3Size], buf[11+id3Size], buf[12+id3Size], buf[13+id3Size]);
             mp3Ver = (buf[11+id3Size]&0x18)>>3;
             numChannels = (buf[13+id3Size]&0xC0)>>6;
             sampleRate = (buf[12+id3Size]&0x0C)>>2;            
         } else if(buf[0] == 0xFF) { // Mp3 header (no ID3 included)
-            //printf("%x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+            //printf("%x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]); // Expected something like: FF E3 84 C4
             mp3Ver = (buf[1]&0x18)>>3;
             numChannels = (buf[3]&0xC0)>>6;
             sampleRate = (buf[2]&0x0C)>>2;
@@ -321,6 +322,24 @@ mp_obj_t sound_save_volume(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_save_volume_obj, sound_save_volume);
 
+//! \brief     Clear audio events (played and recorded).
+//! \param     None
+//! \return    None
+mp_obj_t sound_clear_events(mp_obj_t self_in) {
+    
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_clear_events_obj, sound_clear_events);
+
+//! \brief     Stop any running play or recording (cannot be resumed).
+//! \param     None
+//! \return    None.
+mp_obj_t sound_stop(mp_obj_t self_in) {
+    Codec_Stop();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_stop_obj, sound_stop);
+
 STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_record), MP_ROM_PTR(&sound_record_wav_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_mic_volume), MP_ROM_PTR(&sound_get_mic_volume_obj) },
@@ -336,6 +355,8 @@ STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_resume), MP_ROM_PTR(&sound_resume_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_volume), MP_ROM_PTR(&sound_set_volume_obj) },
     { MP_ROM_QSTR(MP_QSTR_save_volume), MP_ROM_PTR(&sound_save_volume_obj) },
+    { MP_ROM_QSTR(MP_QSTR_clear_events), MP_ROM_PTR(&sound_clear_events_obj) },
+    { MP_ROM_QSTR(MP_QSTR_stop), MP_ROM_PTR(&sound_stop_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(sound_locals_dict, sound_locals_dict_table);
