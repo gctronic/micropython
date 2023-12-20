@@ -80,7 +80,7 @@ STATIC mp_obj_t sound_make_new(const mp_obj_type_t *type, size_t n_args, size_t 
 }
 
 /// \method record_wav
-/// Record sound for "sec" seconds in wav format. The data are saved in RAM memory.
+/// Record sound for "sec" seconds in wav format. The data are saved in RAM memory. Max duration is 10 seconds.
 mp_obj_t sound_record_wav_(mp_obj_t self_in, mp_obj_t sec) {
     int duration = mp_obj_get_int(sec);
     if(duration > 10) {
@@ -124,7 +124,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_record_is_complete_obj, sound_record_is_c
 
 /// \method sound_play_is_complete()
 /// Tell if the last sound is complete.
-/// Return true if the sound is completed.
+/// Return true if the last sound played is completed. If no sound was played it returns false.
 mp_obj_t sound_play_is_complete(mp_obj_t self_in) {
     return mp_obj_new_bool(Codec_IsSoundFinished());
 }
@@ -141,7 +141,7 @@ STATIC mp_obj_t sound_record_get(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_record_get_obj, sound_record_get);
 
-//! \brief  Play sound file (wav or mp3) from internal robot storage. The sound file must have either ".wav" or ".mp3" extension and in the format: 12KHz sample rate, 16 bits per sample, mono.
+//! \brief  Play sound file (wav or mp3) from internal robot storage. The sound file must have either ".wav" or ".mp3" extension and in the format: 12KHz sample rate, 16 bits per sample, mono channel.
 //! \param  name of the file
 //! \return None if ok, RuntimeError exception if another sound or recording is already running, ValueError if file not supported.
 mp_obj_t sound_play_from_file(mp_obj_t self_in, mp_obj_t name) {
@@ -274,9 +274,9 @@ mp_obj_t sound_play_onboard(mp_obj_t self_in, mp_obj_t ind) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(sound_play_onboard_obj, sound_play_onboard);
 
-//! \brief     Pause any running play or recording (can be resumed with "resume").
+//! \brief     Pause any running sound play (can be resumed with "resume").
 //! \param     None
-//! \return    None if ok, RuntimeError exception if no sound or recording is running.
+//! \return    None if ok, RuntimeError exception if no sound is running.
 mp_obj_t sound_pause(mp_obj_t self_in) {
     if(Codec_Pause() != ESP_OK) {
         mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot pause"));
@@ -286,9 +286,9 @@ mp_obj_t sound_pause(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_pause_obj, sound_pause);
 
-//! \brief     Resume a previously paused (with "pause") play or recording.
+//! \brief     Resume a previously paused (with "pause") sound play.
 //! \param     None
-//! \return    None if ok, RuntimeError exception if no sound or recording was paused.
+//! \return    None if ok, RuntimeError exception if no sound was paused.
 mp_obj_t sound_resume(mp_obj_t self_in) {
     if(Codec_Resume() != ESP_OK) {
         mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot resume"));
@@ -331,7 +331,7 @@ mp_obj_t sound_clear_events(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_clear_events_obj, sound_clear_events);
 
-//! \brief     Stop any running play or recording (cannot be resumed).
+//! \brief     Stop any running sound play (cannot be resumed).
 //! \param     None
 //! \return    None.
 mp_obj_t sound_stop(mp_obj_t self_in) {

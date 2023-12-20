@@ -46,7 +46,9 @@ STATIC const thymio_leds_rgb_obj_t thymio_leds_rgb_obj[] = {
     {{&thymio_leds_rgb_type}, 0}, // front-left
     {{&thymio_leds_rgb_type}, 1}, // front-right
     {{&thymio_leds_rgb_type}, 2}, // back-left
-    {{&thymio_leds_rgb_type}, 3}, // back-right                    
+    {{&thymio_leds_rgb_type}, 3}, // back-right
+    {{&thymio_leds_rgb_type}, 4}, // bottom
+    {{&thymio_leds_rgb_type}, 5}, // small rgb led on the top-back (debug)
 };
 #define NUM_LEDS_RGB MP_ARRAY_SIZE(thymio_leds_rgb_obj)
 
@@ -56,6 +58,8 @@ void leds_rgb_init(void) {
     Leds_SetFrontRightBrightness(0, 0, 0);
     Leds_SetBackLeftBrightness(0, 0, 0);
     Leds_SetBackRightBrightness(0, 0, 0);
+    Leds_SetColorSensorBrightness(0, 0, 0);
+    Leds_SetDebugBrightness(0, 0, 0);
 }
 
 int leds_rgb_get_intensity_red(int led) {
@@ -72,6 +76,12 @@ int leds_rgb_get_intensity_red(int led) {
         case 3: // back-right
             return Leds_GetBrightness(E_Led_R_Back_Right);
             break;
+        case 4: // bottom
+            return Leds_GetBrightness(E_Led_R_Color_Sensor);
+            break;   
+        case 5: // top-back (debug)
+            return Leds_GetBrightness(E_Led_R_Debug);
+            break;                      
     }
     return 0;
 }
@@ -90,6 +100,12 @@ int leds_rgb_get_intensity_green(int led) {
         case 3: // back-right
             return Leds_GetBrightness(E_Led_G_Back_Right);
             break;
+        case 4: // bottom
+            return Leds_GetBrightness(E_Led_G_Color_Sensor);
+            break;   
+        case 5: // top-back (debug)
+            return Leds_GetBrightness(E_Led_G_Debug);
+            break;             
     }
     return 0;
 }
@@ -108,6 +124,12 @@ int leds_rgb_get_intensity_blue(int led) {
         case 3: // back-right
             return Leds_GetBrightness(E_Led_B_Back_Right);
             break;
+        case 4: // bottom
+            return Leds_GetBrightness(E_Led_B_Color_Sensor);
+            break;   
+        case 5: // top-back (debug)
+            return Leds_GetBrightness(E_Led_B_Debug);
+            break;             
     }
     return 0;
 }
@@ -138,6 +160,12 @@ void leds_rgb_set_intensity(int led, int red, int green, int blue) {
         case 3: // back-right
             Leds_SetBackRightBrightness(red, green, blue);
             break;
+        case 4: // bottom
+            Leds_SetColorSensorBrightness(red, green, blue);
+            break;   
+        case 5: // top-back (debug)
+            Leds_SetDebugBrightness(red, green, blue);
+            break;             
     }
 }
 
@@ -152,7 +180,7 @@ void leds_rgb_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind
 /// \classmethod \constructor(id)
 /// Create an LEDS RGB associated with the given RGB LED:
 ///
-///   - `id` is the LED number, 0-3 that corresponds to front-left, front-right, back-left, back-right.
+///   - `id` is the LED number, 0-5 that corresponds to front-left, front-right, back-left, back-right, bottom, small top-back.
 STATIC mp_obj_t leds_rgb_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -224,56 +252,6 @@ mp_obj_t leds_rgb_obj_get_intensity_blue(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(leds_rgb_obj_get_intensity_blue_obj, leds_rgb_obj_get_intensity_blue);
 
-/*
-/// \method set_rgb_fl([value red, value green, value blue])
-/// Set the front left RGB LED intensities.  Intensity ranges between 0 (off) and 16 (full on).
-/// Return `None`.
-mp_obj_t leds_rgb_obj_set_rgb_fl(size_t n_args, const mp_obj_t *args) {
-    mp_int_t red = mp_obj_get_int(args[1]);
-    mp_int_t green = mp_obj_get_int(args[2]);
-    mp_int_t blue = mp_obj_get_int(args[3]);
-    leds_rgb_set_intensity(0, red, green, blue);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(leds_rgb_obj_set_rgb_fl_obj, 4, 4, leds_rgb_obj_set_rgb_fl);
-
-/// \method set_rgb_fr([value red, value green, value blue])
-/// Set the front left RGB LED intensities.  Intensity ranges between 0 (off) and 16 (full on).
-/// Return `None`.
-mp_obj_t leds_rgb_obj_set_rgb_fr(size_t n_args, const mp_obj_t *args) {
-    mp_int_t red = mp_obj_get_int(args[1]);
-    mp_int_t green = mp_obj_get_int(args[2]);
-    mp_int_t blue = mp_obj_get_int(args[3]);
-    leds_rgb_set_intensity(1, red, green, blue);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(leds_rgb_obj_set_rgb_fr_obj, 4, 4, leds_rgb_obj_set_rgb_fr);
-
-/// \method set_rgb_bl([value red, value green, value blue])
-/// Set the front left RGB LED intensities.  Intensity ranges between 0 (off) and 16 (full on).
-/// Return `None`.
-mp_obj_t leds_rgb_obj_set_rgb_bl(size_t n_args, const mp_obj_t *args) {
-    mp_int_t red = mp_obj_get_int(args[1]);
-    mp_int_t green = mp_obj_get_int(args[2]);
-    mp_int_t blue = mp_obj_get_int(args[3]);
-    leds_rgb_set_intensity(2, red, green, blue);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(leds_rgb_obj_set_rgb_bl_obj, 4, 4, leds_rgb_obj_set_rgb_bl);
-
-/// \method set_rgb_br([value red, value green, value blue])
-/// Set the front left RGB LED intensities.  Intensity ranges between 0 (off) and 16 (full on).
-/// Return `None`.
-mp_obj_t leds_rgb_obj_set_rgb_br(size_t n_args, const mp_obj_t *args) {
-    mp_int_t red = mp_obj_get_int(args[1]);
-    mp_int_t green = mp_obj_get_int(args[2]);
-    mp_int_t blue = mp_obj_get_int(args[3]);
-    leds_rgb_set_intensity(0, red, green, blue);
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(leds_rgb_obj_set_rgb_br_obj, 4, 4, leds_rgb_obj_set_rgb_br);
-*/
-
 STATIC const mp_rom_map_elem_t leds_rgb_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_on), MP_ROM_PTR(&leds_rgb_obj_on_obj) },
     { MP_ROM_QSTR(MP_QSTR_off), MP_ROM_PTR(&leds_rgb_obj_off_obj) },
@@ -281,12 +259,6 @@ STATIC const mp_rom_map_elem_t leds_rgb_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_intensity_red), MP_ROM_PTR(&leds_rgb_obj_get_intensity_red_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_intensity_green), MP_ROM_PTR(&leds_rgb_obj_get_intensity_green_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_intensity_blue), MP_ROM_PTR(&leds_rgb_obj_get_intensity_blue_obj) },
-/*    
-    { MP_ROM_QSTR(MP_QSTR_get_intensity_blue), MP_ROM_PTR(&leds_rgb_obj_set_rgb_fl_obj) },
-    { MP_ROM_QSTR(MP_QSTR_get_intensity_blue), MP_ROM_PTR(&leds_rgb_obj_set_rgb_fr_obj) },
-    { MP_ROM_QSTR(MP_QSTR_get_intensity_blue), MP_ROM_PTR(&leds_rgb_obj_set_rgb_bl_obj) },
-    { MP_ROM_QSTR(MP_QSTR_get_intensity_blue), MP_ROM_PTR(&leds_rgb_obj_set_rgb_br_obj) },
-*/
 };
 
 STATIC MP_DEFINE_CONST_DICT(leds_rgb_locals_dict, leds_rgb_locals_dict_table);
