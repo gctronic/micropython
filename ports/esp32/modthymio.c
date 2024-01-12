@@ -54,25 +54,15 @@
 #include "thymio_imu.h"
 #include "thymio_color_sensor.h"
 #include "thymio_buttons.h"
+#include "thymio_behaviors.h"
+#include "thymio_leds_buttons.h"
+#include "thymio_led_receiver.h"
+#include "thymio_led_mic.h"
 #include "../../../../../main/mode.h"
 #include "../../../../../main/utility.h"
 #include "../../../../../main/stm32_spi.h"
 
 char api_version[6] = "XX.XX\0";
-
-// Disable onboard behaviors. All sensors and actuators are released for user scripts.
-STATIC mp_obj_t disable_behaviors(void) {
-    enter_micropython_mode();
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(disable_behaviors_obj, disable_behaviors);
-
-// Enable onboard behaviors. Some sensors and actuators are locked depending on the current behavior.
-STATIC mp_obj_t enable_behaviors(void) {
-    exit_micropython_mode();
-    return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(enable_behaviors_obj, enable_behaviors);
 
 // Turn off all LEDs and stop the motors.
 STATIC mp_obj_t turn_off_all(void) {
@@ -103,8 +93,6 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_api_version_obj, get_api_version);
 STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_thymio) },
 
-    { MP_ROM_QSTR(MP_QSTR_disable_behaviors), MP_ROM_PTR(&disable_behaviors_obj) },
-    { MP_ROM_QSTR(MP_QSTR_enable_behaviors), MP_ROM_PTR(&enable_behaviors_obj) },
     { MP_ROM_QSTR(MP_QSTR_turn_off_all), MP_ROM_PTR(&turn_off_all_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_battery_voltage), MP_ROM_PTR(&get_battery_voltage_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_motors_voltage), MP_ROM_PTR(&get_motors_voltage_obj) },
@@ -123,6 +111,10 @@ STATIC const mp_rom_map_elem_t thymio_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_IMU), MP_ROM_PTR(&thymio_imu_type) },
     { MP_ROM_QSTR(MP_QSTR_COLOR_SENSOR), MP_ROM_PTR(&thymio_color_sensor_type) },
     { MP_ROM_QSTR(MP_QSTR_BUTTONS), MP_ROM_PTR(&thymio_buttons_type) },
+    { MP_ROM_QSTR(MP_QSTR_BEHAVIORS), MP_ROM_PTR(&thymio_behaviors_type) },
+    { MP_ROM_QSTR(MP_QSTR_LEDS_BUTTONS), MP_ROM_PTR(&thymio_leds_buttons_type) },
+    { MP_ROM_QSTR(MP_QSTR_LED_RECEIVER), MP_ROM_PTR(&thymio_led_receiver_type) },
+    { MP_ROM_QSTR(MP_QSTR_LED_MICROPHONE), MP_ROM_PTR(&thymio_led_microphone_type) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(tyhmio_module_globals, thymio_module_globals_table);

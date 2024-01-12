@@ -97,10 +97,26 @@ mp_obj_t motors_set_speed(mp_obj_t self_in, mp_obj_t left, mp_obj_t right) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(motors_set_speed_obj, motors_set_speed);
 
+/// \method get_left_pwm_duty()
+/// Get left PWM duty cycle.
+mp_obj_t motors_left_pwm(mp_obj_t self_in) {
+    return mp_obj_new_int(STM32_GetLeftMotorPwm());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_left_pwm_obj, motors_left_pwm);
+
+/// \method get_right_pwm_duty()
+/// Get right PWM duty cycle.
+mp_obj_t motors_right_pwm(mp_obj_t self_in) {
+    return mp_obj_new_int(STM32_GetRightMotorPwm());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(motors_right_pwm_obj, motors_right_pwm);
+
 STATIC const mp_rom_map_elem_t motors_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_left_speed), MP_ROM_PTR(&motors_left_speed_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_right_speed), MP_ROM_PTR(&motors_right_speed_obj) },
-    { MP_ROM_QSTR(MP_QSTR_set_speed), MP_ROM_PTR(&motors_set_speed_obj) }
+    { MP_ROM_QSTR(MP_QSTR_set_speed), MP_ROM_PTR(&motors_set_speed_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_left_pwm_duty), MP_ROM_PTR(&motors_left_pwm_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_right_pwm_duty), MP_ROM_PTR(&motors_right_pwm_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(motors_locals_dict, motors_locals_dict_table);

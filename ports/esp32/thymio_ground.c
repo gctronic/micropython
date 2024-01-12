@@ -66,7 +66,7 @@ void ground_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kin
 /// \classmethod \constructor(id)
 /// Create an GROUND object associated with the given GROUND:
 ///
-///   - `id` is the GROUND number, 0-6.
+///   - `id` is the GROUND number, 0-1.
 STATIC mp_obj_t ground_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check arguments
     mp_arg_check_num(n_args, n_kw, 1, 1, false);
@@ -104,9 +104,27 @@ mp_obj_t ground_normalized_value(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_normalized_value_obj, ground_normalized_value);
 
+/// \method get_ambient()
+/// Get ground sensor ambient value (the higher the value, the brighter the ambient light).
+mp_obj_t ground_ambient(mp_obj_t self_in) {
+    thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    return mp_obj_new_int(GetGroundAmbient(self->ground_id));
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_ambient_obj, ground_ambient);
+
+/// \method reflected()
+/// Get ground sensor reflected value (the lower the value, the darker the object).
+mp_obj_t ground_reflected(mp_obj_t self_in) {
+    thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    return mp_obj_new_int(GetGroundReflected(self->ground_id));
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_reflected_obj, ground_reflected);
+
 STATIC const mp_rom_map_elem_t ground_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&ground_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_normalized_value), MP_ROM_PTR(&ground_normalized_value_obj) },
+    { MP_ROM_QSTR(MP_QSTR_ambient), MP_ROM_PTR(&ground_ambient_obj) },
+    { MP_ROM_QSTR(MP_QSTR_reflected), MP_ROM_PTR(&ground_reflected_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(ground_locals_dict, ground_locals_dict_table);

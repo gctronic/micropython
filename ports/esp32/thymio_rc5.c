@@ -71,8 +71,16 @@ mp_obj_t rc5_obj_get_command(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(rc5_obj_get_command_obj, rc5_obj_get_command);
 
+/// \method get_address()
+/// Get RC5 address.
+mp_obj_t rc5_obj_get_address(mp_obj_t self_in) {
+    return mp_obj_new_int(RC5_GetAddress());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(rc5_obj_get_address_obj, rc5_obj_get_address);
+
 STATIC const mp_rom_map_elem_t rc5_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_command), MP_ROM_PTR(&rc5_obj_get_command_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_address), MP_ROM_PTR(&rc5_obj_get_address_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(rc5_locals_dict, rc5_locals_dict_table);
