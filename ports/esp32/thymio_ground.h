@@ -28,6 +28,9 @@
 
 void ground_init(void);
 int ground_get_value(int prox);
+void ground_get_calibration(int16_t *values);
+void ground_set_calibration(int16_t *values);
+void ground_reset_calibration(void);
 
 extern const mp_obj_type_t thymio_ground_type;
 

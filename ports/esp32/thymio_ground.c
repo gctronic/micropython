@@ -30,7 +30,9 @@
 #include "py/mphal.h"
 #include "thymio_ground.h"
 #include "../../../../../main/stm32_spi.h"
+#include "../../../../../main/settings.h"
 
+int16_t calib_temp[4]; // left black, right black, left white, right white
 
 /// \moduleref thymio
 /// \class GROUND - GROUND object
@@ -53,6 +55,26 @@ void ground_init(void) {
 
 int ground_get_value(int ground) {
     return GetGroundValue(ground);
+}
+
+void ground_get_calibration(int16_t *values)
+{
+    Settings_GetGroundBlackSettings(values);
+    Settings_GetGroundWhiteSettings(&values[2]);
+}
+
+void ground_set_calibration(int16_t *values)
+{
+    Settings_WriteGroundBlack(values);
+    Settings_SetGroundBlackSettings(values);
+    Settings_WriteGroundWhite(&values[2]);
+    Settings_SetGroundWhiteSettings(&values[2]);
+}
+
+void ground_reset_calibration(void)
+{
+    WriteFactoryGroundBlack();
+    WriteFactoryGroundWhite();
 }
 
 /******************************************************************************/
@@ -120,11 +142,59 @@ mp_obj_t ground_reflected(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_reflected_obj, ground_reflected);
 
+/// \method ground_get_calibration()
+/// Get ground calibration values.
+mp_obj_t ground_get_calibration_(mp_obj_t self_in) {
+    thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(2, NULL));
+    ground_get_calibration(calib_temp);
+    if(self->ground_id == 0)
+    {
+        data->items[0] = mp_obj_new_int(calib_temp[0]);
+        data->items[1] = mp_obj_new_int(calib_temp[2]);
+    }
+    else
+    {
+        data->items[0] = mp_obj_new_int(calib_temp[1]);
+        data->items[1] = mp_obj_new_int(calib_temp[3]);
+    }
+    //data->items[0] = mp_obj_new_int(calib_temp[0]);
+    //data->items[1] = mp_obj_new_int(calib_temp[1]);
+    //data->items[2] = mp_obj_new_int(calib_temp[2]);
+    //data->items[3] = mp_obj_new_int(calib_temp[3]);
+    return MP_OBJ_FROM_PTR(data);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_get_calibration_obj, ground_get_calibration_);
+
+/// \method ground_set_calibration()
+/// Set ground calibration values.
+mp_obj_t ground_set_calibration_(mp_obj_t self_in, mp_obj_t values) {
+    mp_obj_t *items;
+    size_t len;
+    int16_t calib_values[4];
+
+    mp_obj_get_array(values, &len, &items);
+    if (len != 4) {
+        mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("Expected exactly 4 values"));
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        calib_values[i] = mp_obj_get_int(items[i]);
+    }
+
+    ground_set_calibration(calib_values);
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_calibration_obj, ground_set_calibration_);
+
 STATIC const mp_rom_map_elem_t ground_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&ground_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_normalized_value), MP_ROM_PTR(&ground_normalized_value_obj) },
     { MP_ROM_QSTR(MP_QSTR_ambient), MP_ROM_PTR(&ground_ambient_obj) },
     { MP_ROM_QSTR(MP_QSTR_reflected), MP_ROM_PTR(&ground_reflected_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_calibration), MP_ROM_PTR(&ground_get_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_calibration), MP_ROM_PTR(&ground_set_calibration_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(ground_locals_dict, ground_locals_dict_table);
