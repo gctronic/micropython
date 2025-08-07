@@ -1,0 +1,25 @@
+{
+    "deploy": [
+        "../deploy.md"
+    ],
+    "docs": "",
+    "features": [
+        "External Flash",
+    ],
+    "images": [
+        "esp32_devkitc.jpg"
+    ],
+    "mcu": "esp32",
+    "product": "ESP32 / WROOM",
+    "thumbnail": "",
+    "url": "https://www.espressif.com/en/products/modules",
+    "variants": {
+        "IDF3": "Compiled with IDF 3.x",
+        "D2WD": "ESP32 D2WD",
+        "SPIRAM": "Support for SPIRAM / WROVER",
+        "UNICORE": "ESP32 Unicore",
+        "OTA": "Support for OTA",
+        "WSM": "THYMIO board"
+    },
+    "vendor": "Espressif"
+}

@@ -71,17 +71,17 @@
 
 // extended modules
 #ifndef MICROPY_ESPNOW
-#define MICROPY_ESPNOW                      (1)
+#define MICROPY_ESPNOW                      (0)
 #endif
 #ifndef MICROPY_PY_BLUETOOTH
-#define MICROPY_PY_BLUETOOTH                (1)
-#define MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS (1)
-#define MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS_WITH_INTERLOCK (1)
+#define MICROPY_PY_BLUETOOTH                (0)
+#define MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS (0)
+#define MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS_WITH_INTERLOCK (0)
 #define MICROPY_PY_BLUETOOTH_SYNC_EVENT_STACK_SIZE (CONFIG_BT_NIMBLE_TASK_STACK_SIZE)
-#define MICROPY_PY_BLUETOOTH_ENABLE_CENTRAL_MODE (1)
-#define MICROPY_PY_BLUETOOTH_ENABLE_PAIRING_BONDING (1)
-#define MICROPY_BLUETOOTH_NIMBLE            (1)
-#define MICROPY_BLUETOOTH_NIMBLE_BINDINGS_ONLY (1)
+#define MICROPY_PY_BLUETOOTH_ENABLE_CENTRAL_MODE (0)
+#define MICROPY_PY_BLUETOOTH_ENABLE_PAIRING_BONDING (0)
+#define MICROPY_BLUETOOTH_NIMBLE            (0)
+#define MICROPY_BLUETOOTH_NIMBLE_BINDINGS_ONLY (0)
 #endif
 #define MICROPY_PY_UTIMEQ                   (1)
 #define MICROPY_PY_UHASHLIB_SHA1            (1)
@@ -113,7 +113,7 @@
 #ifndef MICROPY_PY_MACHINE_I2S
 #define MICROPY_PY_MACHINE_I2S              (1)
 #endif
-#define MICROPY_PY_NETWORK (1)
+#define MICROPY_PY_NETWORK (0)
 #ifndef MICROPY_PY_NETWORK_HOSTNAME_DEFAULT
 #if CONFIG_IDF_TARGET_ESP32
 #define MICROPY_PY_NETWORK_HOSTNAME_DEFAULT "mpy-esp32"
@@ -128,22 +128,22 @@
 #define MICROPY_PY_NETWORK_INCLUDEFILE      "ports/esp32/modnetwork.h"
 #define MICROPY_PY_NETWORK_MODULE_GLOBALS_INCLUDEFILE "ports/esp32/modnetwork_globals.h"
 #ifndef MICROPY_PY_NETWORK_WLAN
-#define MICROPY_PY_NETWORK_WLAN             (1)
+#define MICROPY_PY_NETWORK_WLAN             (0)
 #endif
 #ifndef MICROPY_HW_ENABLE_SDCARD
-#define MICROPY_HW_ENABLE_SDCARD            (1)
+#define MICROPY_HW_ENABLE_SDCARD            (0)
 #endif
 #define MICROPY_HW_SOFTSPI_MIN_DELAY        (0)
 #define MICROPY_HW_SOFTSPI_MAX_BAUDRATE     (ets_get_cpu_frequency() * 1000000 / 200) // roughly
-#define MICROPY_PY_USSL                     (1)
+#define MICROPY_PY_USSL                     (0)
 #define MICROPY_SSL_MBEDTLS                 (1)
-#define MICROPY_PY_USSL_FINALISER           (1)
-#define MICROPY_PY_UWEBSOCKET               (1)
-#define MICROPY_PY_WEBREPL                  (1)
+#define MICROPY_PY_USSL_FINALISER           (0)
+#define MICROPY_PY_UWEBSOCKET               (0)
+#define MICROPY_PY_WEBREPL                  (0)
 #define MICROPY_PY_ONEWIRE                  (1)
 #define MICROPY_PY_UPLATFORM                (1)
 #define MICROPY_PY_USOCKET_EVENTS           (MICROPY_PY_WEBREPL)
-#define MICROPY_PY_BLUETOOTH_RANDOM_ADDR    (1)
+#define MICROPY_PY_BLUETOOTH_RANDOM_ADDR    (0)
 #define MICROPY_PY_BLUETOOTH_DEFAULT_GAP_NAME ("ESP32")
 
 // fatfs configuration
