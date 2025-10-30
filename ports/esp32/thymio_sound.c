@@ -340,6 +340,36 @@ mp_obj_t sound_stop(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(sound_stop_obj, sound_stop);
 
+//! \brief  Play onboard sound (the ones pre-built in the robot firmware).
+//! \param  The ind parameter identifies the correct sound to play:
+//!         0 = magic,
+//!         1 = Tick,
+//!         2 = Blop,
+//!         3 = Fall,
+//!         4 = Detection,
+//!         5 = Bye,
+//!         6 = C3,
+//!         7 = D3,
+//!         8 = E3,
+//!         9 = F3,
+//!         10 = G3,
+//!         11 = A3,
+//!         12 = B3,
+//!         13 = Alarm,
+//!         14 = Good,
+//!         15 = Bad
+//! \return None if ok, RuntimeError exception if another sound or recording is already running.
+mp_obj_t sound_play_tone(mp_obj_t self_in, mp_obj_t freq, mp_obj_t duration) {
+    int f = mp_obj_get_int(freq);
+    int32_t dur = mp_obj_get_int(duration)*100; // convert to milliseconds
+    if(Codec_PlayTone(f, dur) != ESP_OK) {
+        mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Cannot play"));
+        return mp_const_none;
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(sound_play_tone_obj, sound_play_tone);
+
 STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_record), MP_ROM_PTR(&sound_record_wav_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_mic_volume), MP_ROM_PTR(&sound_get_mic_volume_obj) },
@@ -357,6 +387,7 @@ STATIC const mp_rom_map_elem_t sound_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_save_volume), MP_ROM_PTR(&sound_save_volume_obj) },
     { MP_ROM_QSTR(MP_QSTR_clear_events), MP_ROM_PTR(&sound_clear_events_obj) },
     { MP_ROM_QSTR(MP_QSTR_stop), MP_ROM_PTR(&sound_stop_obj) },
+    { MP_ROM_QSTR(MP_QSTR_play_tone), MP_ROM_PTR(&sound_play_tone_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(sound_locals_dict, sound_locals_dict_table);
