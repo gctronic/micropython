@@ -89,7 +89,7 @@
 #define MICROPY_PY_UCRYPTOLIB               (1)
 #define MICROPY_PY_URANDOM_SEED_INIT_FUNC   (esp_random())
 #define MICROPY_PY_UOS_INCLUDEFILE          "ports/esp32/moduos.c"
-#define MICROPY_PY_OS_DUPTERM               (1)
+#define MICROPY_PY_OS_DUPTERM               (2)
 #define MICROPY_PY_UOS_DUPTERM_NOTIFY       (1)
 #define MICROPY_PY_UOS_UNAME                (1)
 #define MICROPY_PY_UOS_URANDOM              (1)
