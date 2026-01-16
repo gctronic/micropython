@@ -93,11 +93,12 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_hsv_values_obj, color_sensor_g
 /// \method get_raw()
 /// Get RGB raw values.
 mp_obj_t color_sensor_get_raw_values(mp_obj_t self_in) {
-    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
+    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(4, NULL));
     raw_temp = color_sensor_get_raw();
     data->items[0] = mp_obj_new_int(raw_temp.Red);
     data->items[1] = mp_obj_new_int(raw_temp.Green);
     data->items[2] = mp_obj_new_int(raw_temp.Blue);
+    data->items[3] = mp_obj_new_int(raw_temp.Clear);
     return MP_OBJ_FROM_PTR(data);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_raw_values_obj, color_sensor_get_raw_values);
