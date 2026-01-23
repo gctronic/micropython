@@ -32,7 +32,6 @@
 
 T_HSV hsv_temp;
 T_RawColor raw_temp;
-T_RawColor calib_temp;
 
 /// \moduleref thymio
 /// \class COLOR_SENSOR - COLOR_SENSOR object
@@ -81,41 +80,41 @@ STATIC mp_obj_t color_sensor_make_new(const mp_obj_type_t *type, size_t n_args, 
 /// \method get_hsv()
 /// Get HSV values.
 mp_obj_t color_sensor_get_hsv_values(mp_obj_t self_in) {
-    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
+    mp_obj_t items[3];
     hsv_temp = color_sensor_get_hsv();
-    data->items[0] = mp_obj_new_int(hsv_temp.Hue);
-    data->items[1] = mp_obj_new_int(hsv_temp.Saturation);
-    data->items[2] = mp_obj_new_int(hsv_temp.Value);
-    return MP_OBJ_FROM_PTR(data);
+    items[0] = mp_obj_new_int(hsv_temp.Hue);
+    items[1] = mp_obj_new_int(hsv_temp.Saturation);
+    items[2] = mp_obj_new_int(hsv_temp.Value);
+    return mp_obj_new_list(3, items);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_hsv_values_obj, color_sensor_get_hsv_values);
 
 /// \method get_raw()
 /// Get RGB raw values.
 mp_obj_t color_sensor_get_raw_values(mp_obj_t self_in) {
-    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(4, NULL));
+    mp_obj_t items[4];
     raw_temp = color_sensor_get_raw();
-    data->items[0] = mp_obj_new_int(raw_temp.Red);
-    data->items[1] = mp_obj_new_int(raw_temp.Green);
-    data->items[2] = mp_obj_new_int(raw_temp.Blue);
-    data->items[3] = mp_obj_new_int(raw_temp.Clear);
-    return MP_OBJ_FROM_PTR(data);
+    items[0] = mp_obj_new_int(raw_temp.Red);
+    items[1] = mp_obj_new_int(raw_temp.Green);
+    items[2] = mp_obj_new_int(raw_temp.Blue);
+    items[3] = mp_obj_new_int(raw_temp.Clear);
+    return mp_obj_new_list(4, items);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_raw_values_obj, color_sensor_get_raw_values);
 
 /// \method get_calibration()
 /// Get calibration values (calibration done in both white and black surfaces): [red white, green white, blue white, red black, green black, blue black].
 mp_obj_t color_sensor_get_calibration(mp_obj_t self_in) {
-    mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(6, NULL));
-    calib_temp = color_sensor_get_calib_white();
-    data->items[0] = mp_obj_new_int(calib_temp.Red);
-    data->items[1] = mp_obj_new_int(calib_temp.Green);
-    data->items[2] = mp_obj_new_int(calib_temp.Blue);
-    calib_temp = color_sensor_get_calib_black();
-    data->items[3] = mp_obj_new_int(calib_temp.Red);
-    data->items[4] = mp_obj_new_int(calib_temp.Green);
-    data->items[5] = mp_obj_new_int(calib_temp.Blue);    
-    return MP_OBJ_FROM_PTR(data);
+    T_RawColor white = color_sensor_get_calib_white();
+    T_RawColor black = color_sensor_get_calib_black();
+    mp_obj_t items[6];
+    items[0] = mp_obj_new_int(white.Red);
+    items[1] = mp_obj_new_int(white.Green);
+    items[2] = mp_obj_new_int(white.Blue);
+    items[3] = mp_obj_new_int(black.Red);
+    items[4] = mp_obj_new_int(black.Green);
+    items[5] = mp_obj_new_int(black.Blue);
+    return mp_obj_new_list(6, items);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_calibration_obj, color_sensor_get_calibration);
 
