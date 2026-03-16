@@ -33,9 +33,11 @@
 #include "../../../../../main/gyroscope.h"
 #include "../../../../../main/angle_controller.h"
 #include "../../../../../main/aseba_esp32.h"
+#include "../../../../../main/settings.h"
 
 T_Axis acc_temp, gyro_temp;
 int16_t calib_temp[3];
+STATIC T_Settings Setting;
 
 /// \moduleref thymio
 /// \class IMU - IMU object
@@ -47,6 +49,7 @@ typedef struct _thymio_imu_obj_t {
 } thymio_imu_obj_t;
 
 void imu_init(void) {
+    Setting.GyroRotFactor = Settings_GetGyroRotFactorSettings();
 }
 
 T_Axis imu_get_acc(void) {
@@ -123,6 +126,7 @@ void imu_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) 
 STATIC mp_obj_t imu_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     thymio_imu_obj_t *imu = m_new_obj(thymio_imu_obj_t);
     imu->base.type = &thymio_imu_type;
+    imu_init();
     return MP_OBJ_FROM_PTR(imu);
 }
 
@@ -166,7 +170,7 @@ mp_obj_t imu_reset_angle_(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_reset_angle_obj, imu_reset_angle_);
 
 /// \method imu_get_gyro_calibration()
-/// Get gyroscope calibration values.
+/// Get gyroscope offsets calibration values [x, y, z].
 mp_obj_t imu_get_gyro_calibration_(mp_obj_t self_in) {
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(3, NULL));
     imu_get_gyro_calibration(calib_temp);
@@ -178,7 +182,7 @@ mp_obj_t imu_get_gyro_calibration_(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_gyro_calibration_obj, imu_get_gyro_calibration_);
 
 /// \method imu_reset_gyro_calibration()
-/// Reset the gyroscope calibration values (set to 0).
+/// Reset the gyroscope offsets calibration values (set to 0).
 mp_obj_t imu_reset_gyro_calibration_(mp_obj_t self_in) {
     imu_reset_gyro_calibration();
     return mp_const_none;
@@ -186,7 +190,7 @@ mp_obj_t imu_reset_gyro_calibration_(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_reset_gyro_calibration_obj, imu_reset_gyro_calibration_);
 
 /// \method imu_calibrate_gyro()
-/// Make a gyroscope calibration, make sure the automatic calibration is off.
+/// Make a gyroscope offsets calibration, automatic calibration must be disabled before calling this function.
 mp_obj_t imu_calibrate_gyro_(mp_obj_t self_in) {
     imu_calibrate_gyro();
     return mp_const_none;
@@ -264,6 +268,44 @@ mp_obj_t imu_clear_freefall_event_(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_clear_freefall_event_obj, imu_clear_freefall_event_);
 
+/// \method imu_gyro_calibration_save()
+/// Save gyroscope offsets calibration values.
+mp_obj_t imu_gyro_calibration_save(mp_obj_t self_in) {
+    Gyroscope_SaveCalibrationOffsets();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_gyro_calibration_save_obj, imu_gyro_calibration_save);
+
+/// \method imu_set_gyro_scale_calibration()
+/// Set gyroscope scale calibration value; 4096 corresponds to 90 degrees (each tick is about 0.022 degrees).
+/// These values will be used until power off.
+mp_obj_t imu_set_gyro_scale_calibration(mp_obj_t self_in, mp_obj_t scale)
+{
+    Setting.GyroRotFactor = mp_obj_get_int(scale);
+    Settings_SetGyroRotFactorSettings(Setting.GyroRotFactor);
+    AngleController_UpdateRotFactor(Setting.GyroRotFactor);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(imu_set_gyro_scale_calibration_obj, imu_set_gyro_scale_calibration);
+
+/// \method imu_get_gyro_scale_calibration()
+/// Get gyroscope scale calibration value.
+mp_obj_t imu_get_gyro_scale_calibration(mp_obj_t self_in)
+{
+    Setting.GyroRotFactor = Settings_GetGyroRotFactorSettings();
+    return mp_obj_new_int(Setting.GyroRotFactor);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_gyro_scale_calibration_obj, imu_get_gyro_scale_calibration);
+
+/// \method imu_save_gyro_scale_calibration()
+/// Save gyroscope scale calibration value in flash.
+mp_obj_t imu_save_gyro_scale_calibration(mp_obj_t self_in)
+{
+    Settings_WriteGyroRotFactor(Setting.GyroRotFactor);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_save_gyro_scale_calibration_obj, imu_save_gyro_scale_calibration);
+
 STATIC const mp_rom_map_elem_t imu_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_acc), MP_ROM_PTR(&imu_get_acceleration_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_gyro), MP_ROM_PTR(&imu_get_gyroscope_obj) },
@@ -280,6 +322,10 @@ STATIC const mp_rom_map_elem_t imu_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_clear_tap_event), MP_ROM_PTR(&imu_clear_tap_event_obj) },
     { MP_ROM_QSTR(MP_QSTR_freefall_detected), MP_ROM_PTR(&imu_freefall_detected_obj) },
     { MP_ROM_QSTR(MP_QSTR_clear_freefall_event), MP_ROM_PTR(&imu_clear_freefall_event_obj) },
+    { MP_ROM_QSTR(MP_QSTR_save_gyro_calib), MP_ROM_PTR(&imu_gyro_calibration_save_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_gyro_scale_calib), MP_ROM_PTR(&imu_get_gyro_scale_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_gyro_scale_calib), MP_ROM_PTR(&imu_set_gyro_scale_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_save_gyro_scale_calib), MP_ROM_PTR(&imu_save_gyro_scale_calibration_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(imu_locals_dict, imu_locals_dict_table);

@@ -216,6 +216,20 @@ mp_obj_t set_led_mic_threshold(mp_obj_t self_in, mp_obj_t threshold) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_led_mic_threshold_obj, set_led_mic_threshold);
 
+// Enable "leds testing" behavior. The LEDs handled by the STM32 will be truned on and off sequentially (for testing purposes).
+STATIC mp_obj_t enable_leds_test(mp_obj_t self_in) {
+    Behavior_Enable(B_LEDS_TEST);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(enable_leds_test_obj, enable_leds_test);
+
+// Disable "leds testing" behavior.
+STATIC mp_obj_t disable_leds_test(mp_obj_t self_in) {
+    Behavior_Disable(B_LEDS_TEST);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(disable_leds_test_obj, disable_leds_test);
+
 STATIC const mp_rom_map_elem_t behaviors_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_disable_behaviors), MP_ROM_PTR(&disable_behaviors_obj) },
     { MP_ROM_QSTR(MP_QSTR_enable_behaviors), MP_ROM_PTR(&enable_behaviors_obj) },
@@ -238,6 +252,8 @@ STATIC const mp_rom_map_elem_t behaviors_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_disable_led_microphone), MP_ROM_PTR(&disable_led_microphone_obj) },
     { MP_ROM_QSTR(MP_QSTR_enable_led_microphone), MP_ROM_PTR(&enable_led_microphone_obj) }, 
     { MP_ROM_QSTR(MP_QSTR_set_led_mic_threshold), MP_ROM_PTR(&set_led_mic_threshold_obj) }, 
+    { MP_ROM_QSTR(MP_QSTR_enable_leds_test), MP_ROM_PTR(&enable_leds_test_obj) },
+    { MP_ROM_QSTR(MP_QSTR_disable_leds_test), MP_ROM_PTR(&disable_leds_test_obj) }, 
 };
 
 STATIC MP_DEFINE_CONST_DICT(behaviors_locals_dict, behaviors_locals_dict_table);

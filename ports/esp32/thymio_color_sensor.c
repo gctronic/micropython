@@ -118,10 +118,28 @@ mp_obj_t color_sensor_get_calibration(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_get_calibration_obj, color_sensor_get_calibration);
 
+/// \method calibrate_white()
+/// Calibrate on white surface and save calibration values to flash.
+mp_obj_t color_sensor_calibrate_and_save_white(mp_obj_t self_in) {
+    ColorSensor_CalibrateWhite();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_calibrate_and_save_white_obj, color_sensor_calibrate_and_save_white);
+
+/// \method calibrate_black()
+/// Calibrate on black surface and save calibration values to flash.
+mp_obj_t color_sensor_calibrate_and_save_black(mp_obj_t self_in) {
+    ColorSensor_CalibrateBlack();
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(color_sensor_calibrate_and_save_black_obj, color_sensor_calibrate_and_save_black);
+
 STATIC const mp_rom_map_elem_t color_sensor_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_hsv), MP_ROM_PTR(&color_sensor_get_hsv_values_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_raw), MP_ROM_PTR(&color_sensor_get_raw_values_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_calibration), MP_ROM_PTR(&color_sensor_get_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_calibrate_and_save_white), MP_ROM_PTR(&color_sensor_calibrate_and_save_white_obj) },
+    { MP_ROM_QSTR(MP_QSTR_calibrate_and_save_black), MP_ROM_PTR(&color_sensor_calibrate_and_save_black_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(color_sensor_locals_dict, color_sensor_locals_dict_table);

@@ -23,22 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_THYMIO_MOTORS_H
-#define MICROPY_INCLUDED_THYMIO_MOTORS_H
+#ifndef MICROPY_INCLUDED_THYMIO_LED_COLOR_H
+#define MICROPY_INCLUDED_THYMIO_LED_COLOR_H
 
-void motors_init(void);
-int motors_get_left_speed();
-int motors_get_right_speed();
-void motors_set_target_speed(int left, int right);
-void motors_get_straight_calibration(int16_t *left, int16_t *right);
-void motors_set_straight_calibration(int16_t corr_left, int16_t corr_right);
-void motors_reset_straight_calibration(void);
-int motors_save_straight_calibration(void);
-void motors_get_distance_calibration(uint64_t *fw, uint64_t *bw);
-void motors_set_distance_calibration(uint64_t fw, uint64_t bw);
-int motors_save_distance_calibration(void);
-void motors_reset_distance_calibration(void);
+void led_color_init(void);
+int led_color_get_intensity(int led);
+void led_color_set_intensity(int led, int intensity);
 
-extern const mp_obj_type_t thymio_motors_type;
+extern const mp_obj_type_t thymio_led_color_type;
 
-#endif // MICROPY_INCLUDED_THYMIO_MOTORS_H
+#endif // MICROPY_INCLUDED_THYMIO_LED_COLOR_H

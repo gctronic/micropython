@@ -50,7 +50,13 @@ STATIC const thymio_ground_obj_t thymio_ground_obj[] = {
 };
 #define NUM_GROUND MP_ARRAY_SIZE(thymio_ground_obj)
 
+STATIC int16_t tempAmbient[2];
+STATIC int16_t tempReflected[2];
+STATIC T_Settings Setting;
+
 void ground_init(void) {
+    Settings_GetGroundBlackSettings(Setting.GroundBlack);
+    Settings_GetGroundWhiteSettings(Setting.GroundWhite);
 }
 
 int ground_get_value(int ground) {
@@ -101,6 +107,8 @@ STATIC mp_obj_t ground_make_new(const mp_obj_type_t *type, size_t n_args, size_t
         mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("GROUND(%d) doesn't exist"), ground_id);
     }
 
+    ground_init();
+
     // return static ground object
     return MP_OBJ_FROM_PTR(&thymio_ground_obj[ground_id]);
 }
@@ -143,32 +151,28 @@ mp_obj_t ground_reflected(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_reflected_obj, ground_reflected);
 
 /// \method ground_get_calibration()
-/// Get ground calibration values.
+/// Get ground calibration values [black, white].
 mp_obj_t ground_get_calibration_(mp_obj_t self_in) {
     thymio_ground_obj_t *self = MP_OBJ_TO_PTR(self_in);
     mp_obj_list_t *data = MP_OBJ_TO_PTR(mp_obj_new_list(2, NULL));
     ground_get_calibration(calib_temp);
     if(self->ground_id == 0)
     {
-        data->items[0] = mp_obj_new_int(calib_temp[0]);
-        data->items[1] = mp_obj_new_int(calib_temp[2]);
+        data->items[0] = mp_obj_new_int(calib_temp[0]); // black
+        data->items[1] = mp_obj_new_int(calib_temp[2]); // white
     }
     else
     {
-        data->items[0] = mp_obj_new_int(calib_temp[1]);
-        data->items[1] = mp_obj_new_int(calib_temp[3]);
+        data->items[0] = mp_obj_new_int(calib_temp[1]); // black
+        data->items[1] = mp_obj_new_int(calib_temp[3]); // white
     }
-    //data->items[0] = mp_obj_new_int(calib_temp[0]);
-    //data->items[1] = mp_obj_new_int(calib_temp[1]);
-    //data->items[2] = mp_obj_new_int(calib_temp[2]);
-    //data->items[3] = mp_obj_new_int(calib_temp[3]);
     return MP_OBJ_FROM_PTR(data);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_get_calibration_obj, ground_get_calibration_);
 
-/// \method ground_set_calibration()
-/// Set ground calibration values.
-mp_obj_t ground_set_calibration_(mp_obj_t self_in, mp_obj_t values) {
+/// \method set_and_save_calibration_all()
+/// Set  both ground calibration values [black left, black right, white left, white right].
+mp_obj_t ground_set_and_save_calibration_all(mp_obj_t self_in, mp_obj_t values) {
     mp_obj_t *items;
     size_t len;
     int16_t calib_values[4];
@@ -186,7 +190,56 @@ mp_obj_t ground_set_calibration_(mp_obj_t self_in, mp_obj_t values) {
 
     return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_calibration_obj, ground_set_calibration_);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(ground_set_and_save_calibration_all_obj, ground_set_and_save_calibration_all);
+
+/// \method calibrate_white()
+/// Calibrate both ground sensors on a white surface.
+/// These values will be used until power off.
+mp_obj_t ground_calibrate_white(mp_obj_t self_in) {
+    GetGroundAmbients(tempAmbient);
+    GetGroundReflecteds(tempReflected);
+    Setting.GroundWhite[0] = tempReflected[0] - tempAmbient[0];
+    if(Setting.GroundWhite[0] < 0)
+    {
+        Setting.GroundWhite[0] = 0;
+    }
+    Setting.GroundWhite[1] = tempReflected[1] - tempAmbient[1];
+    if(Setting.GroundWhite[1] < 0)
+    {
+        Setting.GroundWhite[1] = 0;
+    } 
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_calibrate_white_obj, ground_calibrate_white);
+
+/// \method calibrate_black()
+/// Calibrate both ground sensors on a black surface.
+/// These values will be used until power off.
+mp_obj_t ground_calibrate_black(mp_obj_t self_in) {
+    GetGroundAmbients(tempAmbient);
+    GetGroundReflecteds(tempReflected);
+    Setting.GroundBlack[0] = tempReflected[0] - tempAmbient[0];
+    if(Setting.GroundBlack[0] < 0)
+    {
+        Setting.GroundBlack[0] = 0;
+    }
+    Setting.GroundBlack[1] = tempReflected[1] - tempAmbient[1];
+    if(Setting.GroundBlack[1] < 0)
+    {
+        Setting.GroundBlack[1] = 0;
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_calibrate_black_obj, ground_calibrate_black);
+
+/// \method save_calibration()
+/// Save calibration (white and black surfaces) of both ground sensors to flash.
+mp_obj_t ground_save_calibration(mp_obj_t self_in) {
+    Settings_WriteGroundBlack(Setting.GroundBlack);
+    Settings_WriteGroundWhite(Setting.GroundWhite);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(ground_save_calibration_obj, ground_save_calibration);
 
 STATIC const mp_rom_map_elem_t ground_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_value), MP_ROM_PTR(&ground_value_obj) },
@@ -194,7 +247,10 @@ STATIC const mp_rom_map_elem_t ground_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ambient), MP_ROM_PTR(&ground_ambient_obj) },
     { MP_ROM_QSTR(MP_QSTR_reflected), MP_ROM_PTR(&ground_reflected_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_calibration), MP_ROM_PTR(&ground_get_calibration_obj) },
-    { MP_ROM_QSTR(MP_QSTR_set_calibration), MP_ROM_PTR(&ground_set_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_and_save_calibration_all), MP_ROM_PTR(&ground_set_and_save_calibration_all_obj) },
+    { MP_ROM_QSTR(MP_QSTR_calibrate_white), MP_ROM_PTR(&ground_calibrate_white_obj) },
+    { MP_ROM_QSTR(MP_QSTR_calibrate_black), MP_ROM_PTR(&ground_calibrate_black_obj) },
+    { MP_ROM_QSTR(MP_QSTR_save_calibration), MP_ROM_PTR(&ground_save_calibration_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(ground_locals_dict, ground_locals_dict_table);
