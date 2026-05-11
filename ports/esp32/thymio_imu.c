@@ -306,6 +306,13 @@ mp_obj_t imu_save_gyro_scale_calibration(mp_obj_t self_in)
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_save_gyro_scale_calibration_obj, imu_save_gyro_scale_calibration);
 
+/// \method imu_get_angle_raw()
+/// Get raw yaw angle.
+mp_obj_t imu_get_angle_raw(mp_obj_t self_in) {
+    return mp_obj_new_int(Gyroscope_GetAngleZ());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(imu_get_angle_raw_obj, imu_get_angle_raw);
+
 STATIC const mp_rom_map_elem_t imu_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_acc), MP_ROM_PTR(&imu_get_acceleration_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_gyro), MP_ROM_PTR(&imu_get_gyroscope_obj) },
@@ -326,6 +333,7 @@ STATIC const mp_rom_map_elem_t imu_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_gyro_scale_calib), MP_ROM_PTR(&imu_get_gyro_scale_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_gyro_scale_calib), MP_ROM_PTR(&imu_set_gyro_scale_calibration_obj) },
     { MP_ROM_QSTR(MP_QSTR_save_gyro_scale_calib), MP_ROM_PTR(&imu_save_gyro_scale_calibration_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_angle_raw), MP_ROM_PTR(&imu_get_angle_raw_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT(imu_locals_dict, imu_locals_dict_table);
